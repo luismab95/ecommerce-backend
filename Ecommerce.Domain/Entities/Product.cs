@@ -22,4 +22,19 @@ public class Product
 
     private Product() { }
 
+
+    public static Product UpdateStock(Product product, int quantity)
+    {
+        product.Stock = product.Stock - quantity;
+        product.UpdatedAt = DateTime.Now;
+        return product;
+    }
+
+    public static Product ReturnStock(Product product, int quantity)
+    {
+        product.Stock = product.Stock + quantity;
+        product.UpdatedAt = DateTime.Now;
+        return product;
+    }
+
 }
