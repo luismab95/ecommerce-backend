@@ -14,6 +14,7 @@ public interface IUserRepository
     Task UpdateUserAddressAsync(UserAddress userAddress);
     Task<bool> ExistsByEmailAsync(string email);
     Task<List<WishList>> GetWishListByUserIdAsync(int userId);
+    Task<WishList?> GetProductInWishListAsync(int userId, int productId);
     Task AddProductWishListAsync(WishList newWishlist);
     Task UpdateProductWishListAsync(WishList updateWishlist);
 

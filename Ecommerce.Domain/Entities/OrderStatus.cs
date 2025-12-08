@@ -23,4 +23,34 @@ public class OrderStatus
 
     private OrderStatus() { }
 
+    public static OrderStatus Cancel(OrderStatus orderStatus)
+    {
+        orderStatus.Status = OrderStatusType.Cancelled;
+        orderStatus.UpdatedAt = DateTime.UtcNow;
+        return orderStatus;
+    }
+
+    public static OrderStatus SetStatus(OrderStatus orderStatus, string status)
+    {
+
+        if (!Enum.TryParse<OrderStatusType>(status, true, out var statusEnum))
+        {
+            throw new ArgumentException($"Invalid status: {status}");
+        }
+
+        orderStatus.Status = statusEnum;
+        orderStatus.UpdatedAt = DateTime.UtcNow;
+        return orderStatus;
+    }
+
+    public static OrderStatus Create()
+    {
+        return new OrderStatus
+        {
+            Status = OrderStatusType.Pending,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+        };
+    }
+
 }

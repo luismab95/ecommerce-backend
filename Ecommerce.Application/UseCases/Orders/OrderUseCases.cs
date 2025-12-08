@@ -1,0 +1,115 @@
+﻿using Ecommerce.Domain.DTOs.Orders;
+using Ecommerce.Domain.Entities;
+using Ecommerce.Domain.Interfaces.Repositories;
+using Microsoft.Extensions.Configuration;
+
+
+namespace Ecommerce.Application.UseCases.Orders;
+
+public class OrderUseCases
+{
+
+    private readonly IOrderRepository _orderRepository;
+    private readonly IConfiguration _config;
+
+
+    public OrderUseCases(IOrderRepository orderRepository, IConfiguration config)
+    {
+        _orderRepository = orderRepository;
+        _config = config;
+    }
+
+    public async Task<string> AddOrderAsync(AddOrderRequest request)
+    {
+
+        decimal subtotal = 0;
+
+        var orderItems = new List<OrderItem>();
+        //TODO VALIDAR PRODUCTOY STOCK
+        request.Items.ForEach(item =>
+        {
+            var newOrdenItem = OrderItem.Create(item);
+            orderItems.Add(newOrdenItem);
+            subtotal += item.Price * item.Quantity;
+
+        });
+        var orderAddress = OrderAddress.Create(request.ShippingAddress, request.BillingAddress);
+        var orderStatus = OrderStatus.Create();
+
+        decimal shippingCost = 0;
+        decimal discount = 0;
+
+        decimal taxRate = decimal.Parse(_config["App:taxRate"]!) / 100m;
+        decimal tax = subtotal * taxRate;
+
+        decimal total = subtotal + discount + tax + shippingCost;
+        var paymentInfo = OrderPayment.Create(request.PaymentInfo, total);
+
+
+        var newOrder = Order.Create(request.UserId, orderItems, orderAddress, paymentInfo, orderStatus, total, subtotal, tax, discount, shippingCost);
+        await _orderRepository.AddOrderWithTransactionAsync(newOrder);
+
+        return $"Orden {newOrder.OrderNumber} creada exitosamente.";
+    }
+
+    public async Task<string> CancelOrderAsync(int orderId)
+    {
+
+        var findOrden = await _orderRepository.GetByIdAsync(orderId) ??
+            throw new InvalidOperationException("Orden no encontrada.");
+
+        var canceledOrderStatus = OrderStatus.Cancel(findOrden.OrderStatus!);
+        var canceledOrderPayment = OrderPayment.Cancel(findOrden.OrderPayment!);
+        var cancelOrder = Order.Cancel(findOrden, canceledOrderStatus, canceledOrderPayment);
+        await _orderRepository.CancelAsync(cancelOrder, findOrden.OrderItems.ToList());
+
+        return "Orden cancelada exitosamente.";
+
+    }
+
+    public async Task<string> UpdateOrderStatusAsync(UpdateOrderRequest request, int orderId)
+    {
+
+        var findOrden = await _orderRepository.GetByIdAsync(orderId) ??
+            throw new InvalidOperationException("Orden no encontrada.");
+
+        var updatedOrder = OrderStatus.SetStatus(findOrden.OrderStatus!, request.Status);
+        await _orderRepository.UpdateAsync(updatedOrder);
+
+        return "Orden actualizada exitosamente.";
+
+    }
+
+    public async Task<object> GetOrdersAsync(GetOrdersWithFiltersRequest request)
+    {
+        var result = await _orderRepository.GetOrderAsync(request);
+
+        var safeOrderResponse = new List<object>();
+
+        result.Items.ForEach(order =>
+        {
+            safeOrderResponse.Add(Order.ToSafeResponse(order));
+        });
+
+
+        return new
+        {
+            Items = safeOrderResponse,
+            result.TotalCount,
+            result.PageNumber,
+            result.PageSize,
+            result.TotalPages,
+            result.HasPreviousPage,
+            result.HasNextPage,
+        };
+    }
+
+    public async Task<object> GetOrderByIdAsync(int productId)
+    {
+        var findOrden = await _orderRepository.GetByIdAsync(productId) ??
+            throw new InvalidOperationException("Orden no encontrada.");
+
+        return Order.ToSafeResponseDetail(findOrden!);
+    }
+
+}

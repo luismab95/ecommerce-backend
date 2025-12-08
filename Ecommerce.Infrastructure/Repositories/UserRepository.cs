@@ -102,4 +102,11 @@ public class UserRepository : IUserRepository
         _context.UserAddress.Update(userAddress);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<WishList?> GetProductInWishListAsync(int userId, int productId)
+    {
+        return await _context.WishLists
+                .FirstOrDefaultAsync(w => w.UserId == userId && w.ProductId == productId);
+    }
+
 }

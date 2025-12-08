@@ -1,6 +1,10 @@
 ﻿using Ecommerce.Infrastructure.Data;
 using Ecommerce.Infrastructure.Extensions;
 using Ecommerce.Domain.DTOs.Auth;
+using Ecommerce.Domain.Interfaces.Repositories;
+using Ecommerce.Domain.Interfaces.Services;
+using Ecommerce.Infrastructure.Repositories;
+using Ecommerce.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +25,20 @@ public static class DependencyInjection
 
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString));
+
+
+        // Repositorios
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ISessionRepository, SessionRepository>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<IImageRepository, ImageRepository>();
+        services.AddScoped<IProductRepository, ProductRepository>();
+        services.AddScoped<IOrderRepository, OrderRepository>();
+
+        // Servicios
+        services.AddScoped<IAuthService, JwtAuthService>();
+        services.AddScoped<IEmailService, GmailSmtpEmailSender>();
+        services.AddScoped<IUploadImageService, LocalStorageImageService>();
 
 
         // Configurar JWT

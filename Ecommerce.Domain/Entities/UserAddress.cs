@@ -23,4 +23,103 @@ public class UserAddress
 
     public UserAddress() { }
 
+    public static UserAddress Create(
+      int userId,
+      string shippingStreet, string shippingCity, string shippingState,
+      string shippingZipCode, string shippingCountry,
+      string billingStreet, string billingCity,
+      string billingState, string billingZipCode,
+      string billingCountry)
+    {
+        var userAddress = new UserAddress
+        {
+            UserId = userId,
+            ShippingStreet = shippingStreet,
+            ShippingCity = shippingCity,
+            ShippingState = shippingState,
+            ShippingZipCode = shippingZipCode,
+            ShippingCountry = shippingCountry,
+            BillingStreet = billingStreet,
+            BillingCity = billingCity,
+            BillingState = billingState,
+            BillingCountry = billingCountry,
+            BillingZipCode = billingZipCode,
+            UseSameAddressForBilling = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        if (userAddress.AreAddressesEqual())
+        {
+            userAddress.UseSameAddressForBilling = true;
+        }
+
+        return userAddress;
+    }
+
+    // Update address
+    public static UserAddress Update(
+        UserAddress userAddress,
+        string shippingStreet, string shippingCity, string shippingState,
+        string shippingZipCode, string shippingCountry,
+        string billingStreet, string billingCity,
+        string billingState, string billingZipCode,
+        string billingCountry)
+    {
+
+        userAddress.ShippingStreet = shippingStreet;
+        userAddress.ShippingCity = shippingCity;
+        userAddress.ShippingState = shippingState;
+        userAddress.ShippingZipCode = shippingZipCode;
+        userAddress.ShippingCountry = shippingCountry;
+        userAddress.BillingStreet = billingStreet;
+        userAddress.BillingCity = billingCity;
+        userAddress.BillingState = billingState;
+        userAddress.BillingCountry = billingCountry;
+        userAddress.BillingZipCode = billingZipCode;
+        userAddress.UseSameAddressForBilling = false;
+        userAddress.UpdatedAt = DateTime.UtcNow;
+
+
+        if (userAddress.AreAddressesEqual())
+        {
+            userAddress.UseSameAddressForBilling = true;
+        }
+
+        return userAddress;
+    }
+
+
+    // Safe response
+    public static object ToSafeResponse(UserAddress userAddress)
+    {
+        return new
+        {
+            userAddress.Id,
+            userAddress.ShippingZipCode,
+            userAddress.ShippingCountry,
+            userAddress.ShippingCity,
+            userAddress.ShippingState,
+            userAddress.ShippingStreet,
+            userAddress.BillingCity,
+            userAddress.BillingCountry,
+            userAddress.BillingZipCode,
+            userAddress.BillingState,
+            userAddress.BillingStreet,
+            userAddress.UseSameAddressForBilling,
+            CreatedAt = userAddress.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"),
+            UpdatedAt = userAddress.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"),
+        };
+    }
+
+    // Método para verificar si las direcciones son iguales
+    public bool AreAddressesEqual()
+    {
+        return ShippingStreet == BillingStreet &&
+               ShippingCity == BillingCity &&
+               ShippingState == BillingState &&
+               ShippingZipCode == BillingZipCode &&
+               ShippingCountry == BillingCountry;
+    }
+
 }

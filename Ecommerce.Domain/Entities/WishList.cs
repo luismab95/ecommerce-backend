@@ -15,4 +15,32 @@ public class WishList
 
     private WishList() { }
 
+
+    public static WishList Create(int productId, int userId)
+    {
+        return new WishList
+        {
+            UserId = userId,
+            ProductId = productId,
+            IsActive = true,
+            CreatedAt = DateTime.Now,
+            UpdatedAt = DateTime.Now,
+        };
+    }
+
+    public static WishList ToggleStatus(WishList wishList)
+    {
+        wishList.IsActive = !wishList.IsActive;
+        wishList.UpdatedAt = DateTime.Now;
+        return wishList;
+    }
+
+
+    public static WishList Update(WishList wishList)
+    {
+        wishList.UpdatedAt = DateTime.Now;
+        wishList.IsActive = !wishList.IsActive;
+        return wishList;
+    }
+
 }

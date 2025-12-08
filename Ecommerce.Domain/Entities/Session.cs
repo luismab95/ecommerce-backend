@@ -16,5 +16,23 @@ public class Session
 
     private Session() { }
 
+    public static Session Create(int userId, string deviceInfo, string ipAddress, string refreshToken, bool isActive)
+    {
+        return new Session
+        {
+            UserId = userId,
+            DeviceInfo = deviceInfo,
+            IpAddress = ipAddress,
+            RefreshToken = refreshToken,
+            IsActive = isActive,
+            LoginAt = DateTime.Now,
+        };
+    }
 
+    public static Session Update(Session session)
+    {
+        session.IsActive = false;
+        session.LogoutAt = DateTime.UtcNow;
+        return session;
+    }
 }

@@ -22,6 +22,34 @@ public class Product
 
     private Product() { }
 
+    public static Product Create(int categoryId, string name, string description, decimal price, int stock, bool featured)
+    {
+        return new Product
+        {
+            CategoryId = categoryId,
+            Name = name,
+            Description = description,
+            Stock = stock,
+            Price = price,
+            Featured = featured,
+            IsActive = true,
+            CreatedAt = DateTime.Now,
+            UpdatedAt = DateTime.Now
+        };
+    }
+
+    public static Product Update(Product product, string name, string description, decimal price, int stock, bool featured, int categoryId)
+    {
+        product.Name = name;
+        product.Description = description;
+        product.Price = price;
+        product.Stock = stock;
+        product.Featured = featured;
+        product.CategoryId = categoryId;
+        product.UpdatedAt = DateTime.Now;
+        return product;
+    }
+
 
     public static Product UpdateStock(Product product, int quantity)
     {
@@ -35,6 +63,32 @@ public class Product
         product.Stock = product.Stock + quantity;
         product.UpdatedAt = DateTime.Now;
         return product;
+    }
+
+
+    public static Product Delete(Product product)
+    {
+        product.IsActive = false;
+        product.UpdatedAt = DateTime.Now;
+        return product;
+    }
+
+    public static object ToSafeResponse(Product product)
+    {
+        return new
+        {
+            product.Id,
+            product.CategoryId,
+            product.Name,
+            product.Description,
+            product.Price,
+            product.Stock,
+            product.Featured,
+            CreatedAt = product.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"),
+            UpdatedAt = product.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"),
+            Images = product.Images.Select(img => Image.ToSafeResponse(img)),
+            Category = product.Category != null ? Category.ToSafeResponse(product.Category) : null
+        };
     }
 
 }

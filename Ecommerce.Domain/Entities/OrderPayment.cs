@@ -1,4 +1,6 @@
-﻿namespace Ecommerce.Domain.Entities;
+﻿using Ecommerce.Domain.DTOs.Orders;
+
+namespace Ecommerce.Domain.Entities;
 
 public class OrderPayment
 {
@@ -27,5 +29,46 @@ public class OrderPayment
     public virtual Order? Order { get; private set; }
 
     private OrderPayment() { }
+
+
+    public static OrderPayment Create(PaymentInfoDto orderPayment, decimal amount)
+    {
+        return new OrderPayment()
+        {
+            PaymentGatewayId = GenerarRandomString(12),
+            Status = PaymentStatus.Completed,
+            PaidAt = DateTime.UtcNow,
+            CardHolderName = orderPayment.CardHolderName,
+            CardLastFour = orderPayment.CardLastFour,
+            Method = orderPayment.Method,
+            Amount = amount,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+        };
+    }
+
+    private static string GenerarRandomString(int length)
+    {
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
+        var random = new Random();
+        return new string(Enumerable.Repeat(chars, length).Select(s => s[random.Next(s.Length)]).ToArray());
+    }
+
+    public static OrderPayment Cancel(OrderPayment orderPayment)
+    {
+        orderPayment.Status = PaymentStatus.Refunded;
+        orderPayment.UpdatedAt = DateTime.UtcNow;
+        return orderPayment;
+    }
+
+    public static object ToSafeResponse(OrderPayment orderPayment)
+    {
+        return new
+        {
+            orderPayment.CardLastFour,
+            orderPayment.CardHolderName,
+            orderPayment.Method
+        };
+    }
 
 }

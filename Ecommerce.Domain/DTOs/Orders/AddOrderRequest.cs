@@ -85,11 +85,11 @@ public class PaymentInfoDto
     public string Method { get; set; } = string.Empty;
 
     [StringLength(100, ErrorMessage = "El nombre del titular no puede exceder 100 caracteres")]
-    public string? CardHolderName { get; set; }
+    public string CardHolderName { get; set; } = string.Empty;
 
     [StringLength(4, MinimumLength = 4, ErrorMessage = "Los últimos 4 dígitos deben tener exactamente 4 caracteres")]
     [RegularExpression(@"^\d{4}$", ErrorMessage = "Debe contener solo 4 dígitos numéricos")]
-    public string? CardLastFour { get; set; }
+    public string CardLastFour { get; set; } = string.Empty;
 
 }
 

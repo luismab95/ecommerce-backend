@@ -13,6 +13,45 @@ public class Category
 
     private Category() { }
 
+    public static Category Create(string name, string description)
+    {
+        return new Category
+        {
+            Name = name,
+            Description = description,
+            IsActive = true,
+            CreatedAt = DateTime.Now,
+            UpdatedAt = DateTime.Now,
+        };
+    }
 
+    public static object ToSafeResponse(Category category)
+    {
+        return new
+        {
+            category.Id,
+            category.Name,
+            category.Description,
+            category.IsActive,
+            CreatedAt = category.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"),
+            UpdatedAt = category.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"),
+        };
+    }
+
+    public static Category Update(Category category, string name, string description)
+    {
+        category.Name = name;
+        category.Description = description;
+        category.UpdatedAt = DateTime.Now;
+        return category;
+    }
+
+
+    public static Category Delete(Category category)
+    {
+        category.IsActive = false;
+        category.UpdatedAt = DateTime.Now;
+        return category;
+    }
 
 }
