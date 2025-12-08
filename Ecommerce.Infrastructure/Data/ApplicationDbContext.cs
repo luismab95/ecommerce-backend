@@ -14,16 +14,16 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<User> Users => Set<User>();
     public DbSet<Session> Sessions => Set<Session>();
-    // public DbSet<Category> Categories { get; set; }
-    // public DbSet<Image> Images { get; set; }
-    // public DbSet<Product> Products { get; set; }
-    // public DbSet<WishList> WishLists { get; set; }
-    // public DbSet<UserAddress> UserAddress { get; set; }
-    // public DbSet<Order> Orders { get; set; }
-    // public DbSet<OrderItem> OrderItems { get; set; }
-    // public DbSet<OrderPayment> OrderPayments { get; set; }
-    // public DbSet<OrderStatus> OrderStatuses { get; set; }
-    // public DbSet<OrderAddress> OrderAddresses { get; set; }
+    public DbSet<Category> Categories => Set<Category>();
+    public DbSet<Image> Images => Set<Image>();
+    public DbSet<Product> Products => Set<Product>();
+    public DbSet<WishList> WishLists => Set<WishList>();
+    public DbSet<UserAddress> UserAddress => Set<UserAddress>();
+    public DbSet<Order> Orders => Set<Order>();
+    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<OrderPayment> OrderPayments => Set<OrderPayment>();
+    public DbSet<OrderStatus> OrderStatuses => Set<OrderStatus>();
+    public DbSet<OrderAddress> OrderAddresses => Set<OrderAddress>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -31,5 +31,15 @@ public class ApplicationDbContext : DbContext
 
         modelBuilder.ApplyConfiguration(new UserConfiguration());
         modelBuilder.ApplyConfiguration(new SessionConfiguration());
+        modelBuilder.ApplyConfiguration(new CategoryConfiguration());
+        modelBuilder.ApplyConfiguration(new ImageConfiguration());
+        modelBuilder.ApplyConfiguration(new ProductConfiguration());
+        modelBuilder.ApplyConfiguration(new WishListConfiguration());
+        modelBuilder.ApplyConfiguration(new UserAddressConfiguration());
+        modelBuilder.ApplyConfiguration(new OrderConfiguration());
+        modelBuilder.ApplyConfiguration(new OrderItemConfiguration());
+        modelBuilder.ApplyConfiguration(new OrderPaymentConfiguration());
+        modelBuilder.ApplyConfiguration(new OrderStatusConfiguration());
+        modelBuilder.ApplyConfiguration(new OrderAddressConfiguration());
     }
 }

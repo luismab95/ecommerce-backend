@@ -14,8 +14,10 @@ public class User
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 
-    public virtual ICollection<Session>? Sessions { get; set; }
-
+    public virtual ICollection<Session>? Sessions { get; private set; }
+    public virtual ICollection<WishList>? WishLists { get; private set; }
+    public virtual ICollection<Order> Orders { get; private set; } = new List<Order>();
+    public virtual UserAddress? UserAddress { get; private set; }
 
     private User() { }
 
