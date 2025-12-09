@@ -1,5 +1,5 @@
 ﻿using Ecommerce.Domain.DTOs.Orders;
-using System.Security.Cryptography;
+using Ecommerce.Domain.Utils;
 
 namespace Ecommerce.Domain.Entities;
 
@@ -36,7 +36,7 @@ public class OrderPayment
     {
         return new OrderPayment()
         {
-            PaymentGatewayId = GenerarRandomString(12),
+            PaymentGatewayId = StringUtils.GenerarRandomString(12),
             Status = PaymentStatus.Completed,
             PaidAt = DateTime.UtcNow,
             CardHolderName = orderPayment.CardHolderName,
@@ -48,21 +48,6 @@ public class OrderPayment
         };
     }
 
-
-    private static string GenerarRandomString(int length)
-    {
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
-        var bytes = new byte[length];
-        RandomNumberGenerator.Fill(bytes);
-
-        var result = new char[length];
-        for (int i = 0; i < length; i++)
-        {
-            result[i] = chars[bytes[i] % chars.Length];
-        }
-
-        return new string(result);
-    }
 
     public static OrderPayment Cancel(OrderPayment orderPayment)
     {

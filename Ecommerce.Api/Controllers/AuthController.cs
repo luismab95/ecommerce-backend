@@ -23,85 +23,58 @@ public class AuthController : ControllerBase
     [HttpPost("sign-up")]
     public async Task<IActionResult> SignUp([FromBody] SignUpRequest request)
     {
-        try
-        {
-            var result = await _authUseCases.RegisterUserAsync(request);
 
-            return Ok(new GeneralResponse
-            {
-                Data = result,
-                Message = "Proceso realizado con éxito."
-            });
-        }
-        catch (InvalidOperationException ex)
+        var result = await _authUseCases.RegisterUserAsync(request);
+
+        return Ok(new GeneralResponse
         {
-            return BadRequest(new GeneralResponse { Message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor" });
-        }
+            Data = result,
+            Message = "Proceso realizado con éxito."
+        });
+
+
     }
 
     [HttpPost("sign-in")]
     public async Task<IActionResult> SignIn([FromBody] SignInRequest request)
     {
-        try
-        {
-            request.Ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "";
-            request.DeviceInfo = HttpContext.Request.Headers.UserAgent.ToString();
+        request.Ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "";
+        request.DeviceInfo = HttpContext.Request.Headers.UserAgent.ToString();
 
-            var result = await _authUseCases.LoginUserAsync(request);
+        var result = await _authUseCases.LoginUserAsync(request);
 
-            return Ok(new GeneralResponse
-            {
-                Data = result,
-                Message = "Proceso realizado con éxito."
-            });
-        }
-        catch (InvalidOperationException ex)
+        return Ok(new GeneralResponse
         {
-            return BadRequest(new GeneralResponse { Message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor" });
-        }
+            Data = result,
+            Message = "Proceso realizado con éxito."
+        });
     }
 
     [HttpPost("refresh-token")]
     public async Task<IActionResult> RefreshToken()
     {
-        try
-        {
-            if (!HttpContext.Request.Headers.TryGetValue("Authorization", out var authHeader))
-            {
-                return Unauthorized(new GeneralResponse { Message = "Token no presente en la solicitud." });
-            }
 
-            var parts = authHeader.ToString().Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length != 2 || !parts[0].Equals("Bearer", StringComparison.OrdinalIgnoreCase))
-            {
-                return Unauthorized(new GeneralResponse { Message = "Formato de token inválido." });
-            }
-
-            var token = parts[1];
-            var result = await _authUseCases.RefreshTokenAsync(token);
-
-            return Ok(new GeneralResponse
-            {
-                Data = result,
-                Message = "Proceso realizado con éxito."
-            });
-        }
-        catch (InvalidOperationException ex)
+        if (!HttpContext.Request.Headers.TryGetValue("Authorization", out var authHeader))
         {
-            return BadRequest(new GeneralResponse { Message = ex.Message });
+            return Unauthorized(new GeneralResponse { Message = "Token no presente en la solicitud." });
         }
-        catch (Exception)
+
+        var parts = authHeader.ToString().Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length != 2 || !parts[0].Equals("Bearer", StringComparison.OrdinalIgnoreCase))
         {
-            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor" });
+            return Unauthorized(new GeneralResponse { Message = "Formato de token inválido." });
         }
+
+        var token = parts[1];
+        var result = await _authUseCases.RefreshTokenAsync(token);
+
+        return Ok(new GeneralResponse
+        {
+            Data = result,
+            Message = "Proceso realizado con éxito."
+        });
+
+
     }
 
 
@@ -110,79 +83,51 @@ public class AuthController : ControllerBase
     [ServiceFilter(typeof(PostAuthorizeFilter))]
     public async Task<IActionResult> Logout()
     {
-        try
-        {
-            var rawAuth = HttpContext.Request.Headers.Authorization.ToString();
-            var token = rawAuth.Replace("Bearer ", "").Trim();
 
-            var result = await _authUseCases.LogoutUserAsync(token);
+        var rawAuth = HttpContext.Request.Headers.Authorization.ToString();
+        var token = rawAuth.Replace("Bearer ", "").Trim();
 
-            return Ok(new GeneralResponse
-            {
-                Data = result,
-                Message = "Proceso realizado con éxito."
-            });
-        }
-        catch (InvalidOperationException ex)
+        var result = await _authUseCases.LogoutUserAsync(token);
+
+        return Ok(new GeneralResponse
         {
-            return BadRequest(new GeneralResponse { Message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor" });
-        }
+            Data = result,
+            Message = "Proceso realizado con éxito."
+        });
+
     }
 
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
     {
-        try
-        {
-            var result = await _authUseCases.ForgotPasswordAsync(request);
+        var result = await _authUseCases.ForgotPasswordAsync(request);
 
-            return Ok(new GeneralResponse
-            {
-                Data = result,
-                Message = "Proceso realizado con éxito."
-            });
-        }
-        catch (InvalidOperationException ex)
+        return Ok(new GeneralResponse
         {
-            return BadRequest(new GeneralResponse { Message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor" + ex.ToString() });
-        }
+            Data = result,
+            Message = "Proceso realizado con éxito."
+        });
     }
 
     [HttpPost("reset-password")]
     [Authorize]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
     {
-        try
-        {
-            var rawAuth = HttpContext.Request.Headers.Authorization.ToString();
-            var token = rawAuth.Replace("Bearer ", "").Trim();
-            request.Token = token;
+
+        var rawAuth = HttpContext.Request.Headers.Authorization.ToString();
+        var token = rawAuth.Replace("Bearer ", "").Trim();
+        request.Token = token;
 
 
-            var result = await _authUseCases.ResetPasswordAsync(request);
+        var result = await _authUseCases.ResetPasswordAsync(request);
 
-            return Ok(new GeneralResponse
-            {
-                Data = result,
-                Message = "Proceso realizado con éxito."
-            });
-        }
-        catch (InvalidOperationException ex)
+        return Ok(new GeneralResponse
         {
-            return BadRequest(new GeneralResponse { Message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor" });
-        }
+            Data = result,
+            Message = "Proceso realizado con éxito."
+        });
+
+
     }
 
 }

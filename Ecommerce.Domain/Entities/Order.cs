@@ -1,5 +1,4 @@
-﻿using System.Security.Cryptography;
-
+﻿using Ecommerce.Domain.Utils;
 namespace Ecommerce.Domain.Entities;
 
 public class Order
@@ -52,29 +51,12 @@ public class Order
         return order;
     }
 
-
-
     private static string GenerateOrdenNumber()
     {
         var date = DateTime.Now;
-        var randomPart = GenerarRandomString(5);
+        var randomPart = StringUtils.GenerarRandomString(5);
         string numeroOrden = $"ORD{date.Year}{randomPart}";
         return numeroOrden;
-    }
-
-    private static string GenerarRandomString(int length)
-    {
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
-        var bytes = new byte[length];
-        RandomNumberGenerator.Fill(bytes);
-
-        var result = new char[length];
-        for (int i = 0; i < length; i++)
-        {
-            result[i] = chars[bytes[i] % chars.Length];
-        }
-
-        return new string(result);
     }
 
 

@@ -24,47 +24,29 @@ public class CategoryController : ControllerBase
     [HttpGet("")]
     public async Task<IActionResult> GetCategories([FromQuery] PaginationRequest request)
     {
-        try
-        {
-            var result = await _categoryUseCases.GetCategoriesAsync(request);
 
-            return Ok(new GeneralResponse
-            {
-                Data = result,
-                Message = "Proceso realizado con éxito."
-            });
-        }
-        catch (InvalidOperationException ex)
+        var result = await _categoryUseCases.GetCategoriesAsync(request);
+
+        return Ok(new GeneralResponse
         {
-            return BadRequest(new GeneralResponse { Message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor " });
-        }
+            Data = result,
+            Message = "Proceso realizado con éxito."
+        });
+
     }
 
     [HttpGet("{categoryId}")]
     public async Task<IActionResult> GetCategoryById(int categoryId)
     {
-        try
-        {
-            var result = await _categoryUseCases.GetCategoryByIdAsync(categoryId);
 
-            return Ok(new GeneralResponse
-            {
-                Data = result,
-                Message = "Proceso realizado con éxito."
-            });
-        }
-        catch (InvalidOperationException ex)
+        var result = await _categoryUseCases.GetCategoryByIdAsync(categoryId);
+
+        return Ok(new GeneralResponse
         {
-            return BadRequest(new GeneralResponse { Message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor" });
-        }
+            Data = result,
+            Message = "Proceso realizado con éxito."
+        });
+
     }
 
     [HttpPost("")]
@@ -73,24 +55,15 @@ public class CategoryController : ControllerBase
     [ServiceFilter(typeof(PostAuthorizeRoleFilter))]
     public async Task<IActionResult> AddCategory([FromBody] CategoryRequest request)
     {
-        try
-        {
-            var result = await _categoryUseCases.AddCategoryAsync(request);
 
-            return Ok(new GeneralResponse
-            {
-                Data = result,
-                Message = "Proceso realizado con éxito."
-            });
-        }
-        catch (InvalidOperationException ex)
+        var result = await _categoryUseCases.AddCategoryAsync(request);
+
+        return Ok(new GeneralResponse
         {
-            return BadRequest(new GeneralResponse { Message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor" });
-        }
+            Data = result,
+            Message = "Proceso realizado con éxito."
+        });
+
     }
 
 
@@ -101,24 +74,15 @@ public class CategoryController : ControllerBase
     [ServiceFilter(typeof(PostAuthorizeRoleFilter))]
     public async Task<IActionResult> UpdateCategory(int categoryId, [FromBody] CategoryRequest request)
     {
-        try
-        {
-            var result = await _categoryUseCases.UpdateCategoryAsync(categoryId, request);
 
-            return Ok(new GeneralResponse
-            {
-                Data = result,
-                Message = "Proceso realizado con éxito."
-            });
-        }
-        catch (InvalidOperationException ex)
+        var result = await _categoryUseCases.UpdateCategoryAsync(categoryId, request);
+
+        return Ok(new GeneralResponse
         {
-            return BadRequest(new GeneralResponse { Message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor" });
-        }
+            Data = result,
+            Message = "Proceso realizado con éxito."
+        });
+
     }
 
 
@@ -128,24 +92,16 @@ public class CategoryController : ControllerBase
     [ServiceFilter(typeof(PostAuthorizeRoleFilter))]
     public async Task<IActionResult> DeleteCategory(int categoryId)
     {
-        try
-        {
-            var result = await _categoryUseCases.DeleteCategoryAsync(categoryId);
 
-            return Ok(new GeneralResponse
-            {
-                Data = result,
-                Message = "Proceso realizado con éxito."
-            });
-        }
-        catch (InvalidOperationException ex)
+        var result = await _categoryUseCases.DeleteCategoryAsync(categoryId);
+
+        return Ok(new GeneralResponse
         {
-            return BadRequest(new GeneralResponse { Message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor" });
-        }
+            Data = result,
+            Message = "Proceso realizado con éxito."
+        });
+
+
     }
 
 }

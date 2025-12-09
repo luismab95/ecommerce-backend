@@ -22,47 +22,28 @@ public class ProductController : ControllerBase
     [HttpGet("")]
     public async Task<IActionResult> GetProducts([FromQuery] GetProductsWithFiltersRequest request)
     {
-        try
-        {
-            var result = await _productUseCases.GetProductsAsync(request);
 
-            return Ok(new GeneralResponse
-            {
-                Data = result,
-                Message = "Proceso realizado con éxito."
-            });
-        }
-        catch (InvalidOperationException ex)
+        var result = await _productUseCases.GetProductsAsync(request);
+
+        return Ok(new GeneralResponse
         {
-            return BadRequest(new GeneralResponse { Message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor " });
-        }
+            Data = result,
+            Message = "Proceso realizado con éxito."
+        });
+
     }
 
     [HttpGet("{productId}")]
     public async Task<IActionResult> GetProductById(int productId)
     {
-        try
-        {
-            var result = await _productUseCases.GetProductByIdAsync(productId);
 
-            return Ok(new GeneralResponse
-            {
-                Data = result,
-                Message = "Proceso realizado con éxito."
-            });
-        }
-        catch (InvalidOperationException ex)
+        var result = await _productUseCases.GetProductByIdAsync(productId);
+
+        return Ok(new GeneralResponse
         {
-            return BadRequest(new GeneralResponse { Message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor" });
-        }
+            Data = result,
+            Message = "Proceso realizado con éxito."
+        });
     }
 
 
@@ -72,24 +53,14 @@ public class ProductController : ControllerBase
     [ServiceFilter(typeof(PostAuthorizeRoleFilter))]
     public async Task<IActionResult> AddProduct([FromBody] ProductRequest request)
     {
-        try
-        {
-            var result = await _productUseCases.AddProductAsync(request);
 
-            return Ok(new GeneralResponse
-            {
-                Data = result,
-                Message = "Proceso realizado con éxito."
-            });
-        }
-        catch (InvalidOperationException ex)
+        var result = await _productUseCases.AddProductAsync(request);
+
+        return Ok(new GeneralResponse
         {
-            return BadRequest(new GeneralResponse { Message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor" });
-        }
+            Data = result,
+            Message = "Proceso realizado con éxito."
+        });
     }
 
     [HttpPut("{productId}")]
@@ -98,24 +69,15 @@ public class ProductController : ControllerBase
     [ServiceFilter(typeof(PostAuthorizeRoleFilter))]
     public async Task<IActionResult> UpdateProduct(int productId, [FromBody] ProductRequest request)
     {
-        try
-        {
-            var result = await _productUseCases.UpdateProductAsync(productId, request);
 
-            return Ok(new GeneralResponse
-            {
-                Data = result,
-                Message = "Proceso realizado con éxito."
-            });
-        }
-        catch (InvalidOperationException ex)
+        var result = await _productUseCases.UpdateProductAsync(productId, request);
+
+        return Ok(new GeneralResponse
         {
-            return BadRequest(new GeneralResponse { Message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor" });
-        }
+            Data = result,
+            Message = "Proceso realizado con éxito."
+        });
+
     }
 
 
@@ -125,26 +87,16 @@ public class ProductController : ControllerBase
     [ServiceFilter(typeof(PostAuthorizeRoleFilter))]
     public async Task<IActionResult> DeleteProduct(int productId)
     {
-        try
-        {
-            var result = await _productUseCases.DeleteProductAsync(productId);
+        var result = await _productUseCases.DeleteProductAsync(productId);
 
-            return Ok(new GeneralResponse
-            {
-                Data = result,
-                Message = "Proceso realizado con éxito."
-            });
-        }
-        catch (InvalidOperationException ex)
+        return Ok(new GeneralResponse
         {
-            return BadRequest(new GeneralResponse { Message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor" });
-        }
+            Data = result,
+            Message = "Proceso realizado con éxito."
+        });
+
     }
-
-
-
 }
+
+
+

@@ -5,16 +5,19 @@ using Ecommerce.Domain.Interfaces.Repositories;
 using Ecommerce.Infrastructure.Data;
 using Ecommerce.Infrastructure.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Ecommerce.Infrastructure.Repositories;
 
 public class OrderRepository : IOrderRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly ILogger<OrderRepository> _logger;
 
-    public OrderRepository(ApplicationDbContext context)
+    public OrderRepository(ApplicationDbContext context, ILogger<OrderRepository> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public async Task AddOrderWithTransactionAsync(Order order)
@@ -39,10 +42,11 @@ public class OrderRepository : IOrderRepository
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            throw;
+            _logger.LogError(ex, "Error al agregar la orden: {Message}", ex.Message);
+            throw new InvalidOperationException("Error al agregar la orden", ex);
         }
     }
 

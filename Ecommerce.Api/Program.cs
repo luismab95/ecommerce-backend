@@ -1,8 +1,9 @@
-using Ecommerce.Api.Configurations;
+using Ecommerce.Infrastructure.Configurations;
 using Ecommerce.Infrastructure;
 using Ecommerce.Application;
 using Ecommerce.Api.Filters;
 using Microsoft.OpenApi;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +40,8 @@ builder.Services.AddSwaggerGen(options =>
 
 
 var app = builder.Build();
+app.UseSerilogRequestLogging();
+app.UseMiddleware<ErrorResponseLoggingMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -46,6 +49,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger(); // Genera el JSON OpenAPI
     app.UseSwaggerUI(); // Genera la UI Swagger
 }
+
 
 app.UseCors("NewPolicy");
 app.UseStaticFiles();

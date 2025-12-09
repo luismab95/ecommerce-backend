@@ -2,7 +2,8 @@
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Interfaces.Repositories;
 using Microsoft.Extensions.Configuration;
-
+using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace Ecommerce.Application.UseCases.Orders;
 
@@ -12,17 +13,25 @@ public class OrderUseCases
     private readonly IOrderRepository _orderRepository;
     private readonly IProductRepository _productRepository;
     private readonly IConfiguration _config;
+    private static readonly ActivitySource _source = new("OrderUseCases");
+    private readonly ILogger<OrderUseCases> _logger;
 
 
-    public OrderUseCases(IOrderRepository orderRepository, IProductRepository productRepository, IConfiguration config)
+    public OrderUseCases(IOrderRepository orderRepository, IProductRepository productRepository, IConfiguration config, ILogger<OrderUseCases> logger)
     {
         _orderRepository = orderRepository;
         _productRepository = productRepository;
         _config = config;
+        _logger = logger;
     }
 
     public async Task<string> AddOrderAsync(AddOrderRequest request)
     {
+        using var activity = _source.StartActivity("AddOrderAsync");
+
+        _logger.LogInformation(
+            "Iniciando creación de orden para cliente {UserId}",
+            request.UserId);
 
         decimal subtotal = 0;
         var orderItems = new List<OrderItem>();
@@ -56,10 +65,28 @@ public class OrderUseCases
         var paymentInfo = OrderPayment.Create(request.PaymentInfo, total);
 
 
-        var newOrder = Order.Create(request.UserId, orderItems, orderAddress, paymentInfo, orderStatus, total, subtotal, tax, discount, shippingCost);
-        await _orderRepository.AddOrderWithTransactionAsync(newOrder);
+        activity?.SetTag("order.userId", request.UserId);
+        activity?.SetTag("order.items_count", request.Items.Count);
+        activity?.SetTag("order.subtotal", subtotal.ToString());
+        activity?.SetTag("order.shippingCost", shippingCost.ToString());
+        activity?.SetTag("order.discount", discount.ToString());
+        activity?.SetTag("order.tax", tax.ToString());
+        activity?.SetTag("order.total", total.ToString());
 
-        return $"Orden {newOrder.OrderNumber} creada exitosamente.";
+        using var dbSpan = _source.StartActivity("SaveToDatabase", ActivityKind.Internal);
+        {
+
+            var newOrder = Order.Create(request.UserId, orderItems, orderAddress, paymentInfo, orderStatus, total, subtotal, tax, discount, shippingCost);
+            await _orderRepository.AddOrderWithTransactionAsync(newOrder);
+
+            dbSpan?.SetTag("db.operation", "insert");
+            dbSpan?.SetTag("db.rows_affected", 1);
+
+            _logger.LogInformation("Orden {OrderNumber} creada exitosamente para cliente {UserId}",
+                newOrder.OrderNumber, newOrder.UserId);
+
+            return $"Orden {newOrder.OrderNumber} creada exitosamente.";
+        }
     }
 
     public async Task<string> CancelOrderAsync(int orderId)

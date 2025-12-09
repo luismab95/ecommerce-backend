@@ -24,26 +24,21 @@ public class ImageController : ControllerBase
     [HttpGet("{fileName}")]
     public IActionResult GetImage(string fileName)
     {
-        try
+        var uploadsPath = Path.Combine(_environment.WebRootPath, UploadsFolder);
+        var filePath = Path.Combine(uploadsPath, fileName);
+
+        if (!System.IO.File.Exists(filePath))
         {
-            var uploadsPath = Path.Combine(_environment.WebRootPath, UploadsFolder);
-            var filePath = Path.Combine(uploadsPath, fileName);
-
-            if (!System.IO.File.Exists(filePath))
-            {
-                return NotFound("Imagen no encontrada");
-            }
-
-            var extension = Path.GetExtension(fileName).ToLowerInvariant();
-            var contentType = _imageUseCases.GetContentType(extension);
-
-            var fileBytes = System.IO.File.ReadAllBytes(filePath);
-            return File(fileBytes, contentType);
+            return NotFound("Imagen no encontrada");
         }
-        catch (Exception)
-        {
-            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor" });
-        }
+
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        var contentType = _imageUseCases.GetContentType(extension);
+
+        var fileBytes = System.IO.File.ReadAllBytes(filePath);
+        return File(fileBytes, contentType);
+
+
 
     }
 
@@ -54,24 +49,16 @@ public class ImageController : ControllerBase
     [ServiceFilter(typeof(PostAuthorizeRoleFilter))]
     public async Task<IActionResult> AddImages([FromForm] IFormFileCollection request, int productId)
     {
-        try
-        {
-            var result = await _imageUseCases.AddImagesAsync(request, productId);
 
-            return Ok(new GeneralResponse
-            {
-                Data = result,
-                Message = "Proceso realizado con éxito."
-            });
-        }
-        catch (InvalidOperationException ex)
+        var result = await _imageUseCases.AddImagesAsync(request, productId);
+
+        return Ok(new GeneralResponse
         {
-            return BadRequest(new GeneralResponse { Message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor" });
-        }
+            Data = result,
+            Message = "Proceso realizado con éxito."
+        });
+
+
     }
 
 
@@ -81,26 +68,14 @@ public class ImageController : ControllerBase
     [ServiceFilter(typeof(PostAuthorizeRoleFilter))]
     public async Task<IActionResult> DeleteImage(int imageId)
     {
-        try
-        {
-            var result = await _imageUseCases.DeleteImageAsync(imageId);
+        var result = await _imageUseCases.DeleteImageAsync(imageId);
 
-            return Ok(new GeneralResponse
-            {
-                Data = result,
-                Message = "Proceso realizado con éxito."
-            });
-        }
-        catch (InvalidOperationException ex)
+        return Ok(new GeneralResponse
         {
-            return BadRequest(new GeneralResponse { Message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor" });
-        }
+            Data = result,
+            Message = "Proceso realizado con éxito."
+        });
+
     }
-
-
 
 }

@@ -25,72 +25,46 @@ public class OrderController : ControllerBase
     [HttpGet("")]
     public async Task<IActionResult> GetOrders([FromQuery] GetOrdersWithFiltersRequest request)
     {
-        try
-        {
-            var result = await _orderUseCase.GetOrdersAsync(request);
 
-            return Ok(new GeneralResponse
-            {
-                Data = result,
-                Message = "Proceso realizado con éxito."
-            });
-        }
-        catch (InvalidOperationException ex)
+        var result = await _orderUseCase.GetOrdersAsync(request);
+
+        return Ok(new GeneralResponse
         {
-            return BadRequest(new GeneralResponse { Message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor " });
-        }
+            Data = result,
+            Message = "Proceso realizado con éxito."
+        });
+
     }
 
     [HttpGet("{orderId}")]
     public async Task<IActionResult> GetOrderById(int orderId)
     {
-        try
-        {
-            var result = await _orderUseCase.GetOrderByIdAsync(orderId);
 
-            return Ok(new GeneralResponse
-            {
-                Data = result,
-                Message = "Proceso realizado con éxito."
-            });
-        }
-        catch (InvalidOperationException ex)
+        var result = await _orderUseCase.GetOrderByIdAsync(orderId);
+
+        return Ok(new GeneralResponse
         {
-            return BadRequest(new GeneralResponse { Message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor" });
-        }
+            Data = result,
+            Message = "Proceso realizado con éxito."
+        });
+
+
     }
 
 
     [HttpPost("")]
     public async Task<IActionResult> CreateOrder([FromBody] AddOrderRequest request)
     {
-        try
-        {
-            var result = await _orderUseCase.AddOrderAsync(request);
 
-            return Ok(new GeneralResponse
-            {
-                Data = result,
-                Message = "Proceso realizado con éxito."
-            });
-        }
-        catch (InvalidOperationException ex)
-        {
+        var result = await _orderUseCase.AddOrderAsync(request);
 
-            return BadRequest(new GeneralResponse { Message = ex.Message });
-        }
-        catch (Exception ex)
+        return Ok(new GeneralResponse
         {
-            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor" + ex.Message });
-        }
+            Data = result,
+            Message = "Proceso realizado con éxito."
+        });
+
+
 
     }
 
@@ -99,48 +73,30 @@ public class OrderController : ControllerBase
     [ServiceFilter(typeof(PostAuthorizeRoleFilter))]
     public async Task<IActionResult> UpdateOrderStaus([FromBody] UpdateOrderRequest request, int orderId)
     {
-        try
-        {
-            var result = await _orderUseCase.UpdateOrderStatusAsync(request, orderId);
 
-            return Ok(new GeneralResponse
-            {
-                Data = result,
-                Message = "Proceso realizado con éxito."
-            });
-        }
-        catch (InvalidOperationException ex)
+        var result = await _orderUseCase.UpdateOrderStatusAsync(request, orderId);
+
+        return Ok(new GeneralResponse
         {
-            return BadRequest(new GeneralResponse { Message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor" });
-        }
+            Data = result,
+            Message = "Proceso realizado con éxito."
+        });
+
     }
 
 
     [HttpDelete("{orderId}")]
     public async Task<IActionResult> CancelOrder(int orderId)
     {
-        try
-        {
-            var result = await _orderUseCase.CancelOrderAsync(orderId);
 
-            return Ok(new GeneralResponse
-            {
-                Data = result,
-                Message = "Proceso realizado con éxito."
-            });
-        }
-        catch (InvalidOperationException ex)
+        var result = await _orderUseCase.CancelOrderAsync(orderId);
+
+        return Ok(new GeneralResponse
         {
-            return BadRequest(new GeneralResponse { Message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor" });
-        }
+            Data = result,
+            Message = "Proceso realizado con éxito."
+        });
+
     }
 
 }
