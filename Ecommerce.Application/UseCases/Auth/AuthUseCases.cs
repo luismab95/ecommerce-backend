@@ -40,7 +40,7 @@ public class AuthUseCases
         var passwordHash = _authService.HashPassword(request.Password);
 
         // Crear usuario
-        var user = User.Create(request.Email, passwordHash, request.FirstName, request.LastName);
+        var user = User.Create(request.Email, passwordHash, request.FirstName, request.LastName, request.Phone);
 
         // Guardar usuario
         await _userRepository.AddAsync(user);

@@ -1,4 +1,5 @@
 ﻿using Ecommerce.Domain.DTOs.Orders;
+using System.Security.Cryptography;
 
 namespace Ecommerce.Domain.Entities;
 
@@ -47,11 +48,20 @@ public class OrderPayment
         };
     }
 
+
     private static string GenerarRandomString(int length)
     {
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
-        var random = new Random();
-        return new string(Enumerable.Repeat(chars, length).Select(s => s[random.Next(s.Length)]).ToArray());
+        var bytes = new byte[length];
+        RandomNumberGenerator.Fill(bytes);
+
+        var result = new char[length];
+        for (int i = 0; i < length; i++)
+        {
+            result[i] = chars[bytes[i] % chars.Length];
+        }
+
+        return new string(result);
     }
 
     public static OrderPayment Cancel(OrderPayment orderPayment)

@@ -27,11 +27,15 @@ public class ProductUseCases
             if (product != null && product.Images != null)
             {
                 string baseUrl = $"{_config["App:StaticUrl"]}";
+                var imagesList = new List<Image>();
 
                 product.Images.ToList().ForEach(image =>
                 {
-                    image = Image.UpdatePath(image, baseUrl);
+                    if (image.IsActive)
+                        imagesList.Add(Image.UpdatePath(image, baseUrl));
                 });
+
+                product = Product.SetImages(product, imagesList);
             }
 
             safeProductResponse.Add(Product.ToSafeResponse(product!));
@@ -58,10 +62,14 @@ public class ProductUseCases
         if (findProduct != null && findProduct.Images != null)
         {
             string baseUrl = $"{_config["App:StaticUrl"]}";
+            var imagesList = new List<Image>();
             findProduct.Images.ToList().ForEach(image =>
             {
-                image = Image.UpdatePath(image, baseUrl);
+                if (image.IsActive)
+                    imagesList.Add(Image.UpdatePath(image, baseUrl));
             });
+
+            findProduct = Product.SetImages(findProduct, imagesList);
         }
 
         return Product.ToSafeResponse(findProduct!);

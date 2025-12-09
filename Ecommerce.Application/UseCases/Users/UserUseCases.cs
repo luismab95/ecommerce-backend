@@ -39,10 +39,16 @@ public class UserUseCases
             if (wishlist != null && wishlist.Product!.Images != null)
             {
                 string baseUrl = $"{_config["App:StaticUrl"]}";
+                var imagesList = new List<Image>();
+
                 wishlist.Product.Images.ToList().ForEach(image =>
                 {
-                    image = Image.UpdatePath(image, baseUrl);
+                    if (image.IsActive)
+                        imagesList.Add(Image.UpdatePath(image, baseUrl));
                 });
+
+                var product = Product.SetImages(wishlist.Product, imagesList);
+                wishlist = WishList.SetProduct(wishlist, product);
             }
             wishlists.Add(Product.ToSafeResponse(wishlist!.Product!));
         });
@@ -71,7 +77,7 @@ public class UserUseCases
             await _userRepository.UpdateProductWishListAsync(updateProductWishlist);
         }
 
-        return $"Producto '{findProduct.Name}' {(findProductInWishlist == null ? "agregado" : findProductInWishlist.IsActive ? "quitado" : "agregado")} de la lista de deseados exitosamente.";
+        return $"Producto '{findProduct.Name}' {(findProductInWishlist == null ? "agregado" : findProductInWishlist.IsActive ? "agregado" : "quitado")} de la lista de deseados exitosamente.";
     }
 
 

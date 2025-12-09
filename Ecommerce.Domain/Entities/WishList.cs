@@ -28,6 +28,12 @@ public class WishList
         };
     }
 
+    public static WishList SetProduct(WishList wishList, Product product)
+    {
+        wishList.Product = product;
+        return wishList;
+    }
+
     public static WishList ToggleStatus(WishList wishList)
     {
         wishList.IsActive = !wishList.IsActive;

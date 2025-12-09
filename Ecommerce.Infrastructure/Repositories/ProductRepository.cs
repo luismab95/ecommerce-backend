@@ -33,10 +33,12 @@ public class ProductRepository : IProductRepository
 
     public async Task<PaginationResponse<Product>> GetProductsAsync(GetProductsWithFiltersRequest paginationRequest)
     {
+
         var query = _context.Products
             .Include(p => p.Category)
             .Include(p => p.Images)
             .Where(p => p.IsActive);
+
 
         // Aplicar búsqueda si searchTerm no es nulo o vacío
         if (!string.IsNullOrWhiteSpace(paginationRequest.SearchTerm))

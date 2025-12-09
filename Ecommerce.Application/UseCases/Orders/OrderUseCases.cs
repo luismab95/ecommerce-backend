@@ -34,7 +34,7 @@ public class OrderUseCases
             {
                 throw new InvalidOperationException($"Producto {request.Items[i].ProductName} no encontrado.");
             }
-            if (findProduct.Stock < orderItems[i].Quantity)
+            if (findProduct.Stock < request.Items[i].Quantity)
             {
                 throw new InvalidOperationException($"Stock insuficiente para el producto {request.Items[i].ProductName}.");
             }
@@ -42,7 +42,6 @@ public class OrderUseCases
             orderItems.Add(newOrdenItem);
             subtotal += request.Items[i].Price * request.Items[i].Quantity;
         }
-
 
         var orderAddress = OrderAddress.Create(request.ShippingAddress, request.BillingAddress);
         var orderStatus = OrderStatus.Create();

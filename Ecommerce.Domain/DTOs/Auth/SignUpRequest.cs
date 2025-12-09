@@ -24,4 +24,11 @@ public class SignUpRequest
     [StringLength(50, MinimumLength = 2, ErrorMessage = "El apellido debe tener entre 2 y 50 caracteres")]
     [RegularExpression(@"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$", ErrorMessage = "El apellido solo puede contener letras y espacios")]
     public string LastName { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "El teléfono es requerido")]
+    [RegularExpression(@"^(\+\d{1,3})?\s?\(?\d{1,4}\)?[\s.-]?\d{3}[\s.-]?\d{4}$",
+      ErrorMessage = "El formato del teléfono no es válido. Ejemplo: +34 612 345 678")]
+    [StringLength(20, ErrorMessage = "El teléfono no puede exceder 20 caracteres")]
+    public string Phone { get; set; } = string.Empty;
+
 }

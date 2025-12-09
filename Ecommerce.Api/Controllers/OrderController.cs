@@ -74,12 +74,6 @@ public class OrderController : ControllerBase
     {
         try
         {
-            decimal TotalAmount = 0;
-            request.Items?.ForEach(item =>
-            {
-                TotalAmount += item.Price * item.Quantity;
-            });
-
             var result = await _orderUseCase.AddOrderAsync(request);
 
             return Ok(new GeneralResponse
@@ -93,9 +87,9 @@ public class OrderController : ControllerBase
 
             return BadRequest(new GeneralResponse { Message = ex.Message });
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor" });
+            return StatusCode(500, new GeneralResponse { Message = "Error interno del servidor" + ex.Message });
         }
 
     }

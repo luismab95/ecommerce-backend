@@ -21,7 +21,7 @@ public class User
 
     private User() { }
 
-    public static User Create(string email, string passwordHash, string firstName, string lastName)
+    public static User Create(string email, string passwordHash, string firstName, string lastName, string phone)
     {
         return new User
         {
@@ -30,7 +30,7 @@ public class User
             FirstName = firstName,
             LastName = lastName,
             Role = "Cliente",
-            Phone = "",
+            Phone = phone,
             IsActive = true,
             CreatedAt = DateTime.Now,
             UpdatedAt = DateTime.Now,

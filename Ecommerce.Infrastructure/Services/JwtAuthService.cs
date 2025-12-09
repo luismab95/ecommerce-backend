@@ -70,8 +70,10 @@ public class JwtAuthService : IAuthService
 
         var parameters = new TokenValidationParameters
         {
-            ValidateIssuer = !string.IsNullOrEmpty(_jwtOptions.Issuer),
-            ValidateAudience = !string.IsNullOrEmpty(_jwtOptions.Audience),
+            ValidIssuer = string.IsNullOrEmpty(_jwtOptions.Issuer) ? null : _jwtOptions.Issuer,
+            ValidAudience = string.IsNullOrEmpty(_jwtOptions.Audience) ? null : _jwtOptions.Audience,
+            ValidateAudience = true,
+            ValidateIssuer = true,
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(key),
             ValidateLifetime = validateLifetime,
@@ -83,8 +85,9 @@ public class JwtAuthService : IAuthService
             _tokenHandler.ValidateToken(token, parameters, out _);
             return true;
         }
-        catch
+        catch (Exception e)
         {
+            Console.WriteLine(e.Message);
             return false;
         }
     }

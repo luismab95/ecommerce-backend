@@ -38,6 +38,7 @@ public class Product
         };
     }
 
+
     public static Product Update(Product product, string name, string description, decimal price, int stock, bool featured, int categoryId)
     {
         product.Name = name;
@@ -50,6 +51,12 @@ public class Product
         return product;
     }
 
+
+    public static Product SetImages(Product product, List<Image> images)
+    {
+        product.Images = images;
+        return product;
+    }
 
     public static Product UpdateStock(Product product, int quantity)
     {
