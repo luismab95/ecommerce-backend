@@ -10,12 +10,14 @@ public class OrderUseCases
 {
 
     private readonly IOrderRepository _orderRepository;
+    private readonly IProductRepository _productRepository;
     private readonly IConfiguration _config;
 
 
-    public OrderUseCases(IOrderRepository orderRepository, IConfiguration config)
+    public OrderUseCases(IOrderRepository orderRepository, IProductRepository productRepository, IConfiguration config)
     {
         _orderRepository = orderRepository;
+        _productRepository = productRepository;
         _config = config;
     }
 
@@ -23,16 +25,25 @@ public class OrderUseCases
     {
 
         decimal subtotal = 0;
-
         var orderItems = new List<OrderItem>();
-        //TODO VALIDAR PRODUCTOY STOCK
-        request.Items.ForEach(item =>
-        {
-            var newOrdenItem = OrderItem.Create(item);
-            orderItems.Add(newOrdenItem);
-            subtotal += item.Price * item.Quantity;
 
-        });
+        for (int i = 0; i < request.Items.Count; i++)
+        {
+            var findProduct = await _productRepository.GetByIdAsync(request.Items[i].ProductId);
+            if (findProduct == null)
+            {
+                throw new InvalidOperationException($"Producto {request.Items[i].ProductName} no encontrado.");
+            }
+            if (findProduct.Stock < orderItems[i].Quantity)
+            {
+                throw new InvalidOperationException($"Stock insuficiente para el producto {request.Items[i].ProductName}.");
+            }
+            var newOrdenItem = OrderItem.Create(request.Items[i]);
+            orderItems.Add(newOrdenItem);
+            subtotal += request.Items[i].Price * request.Items[i].Quantity;
+        }
+
+
         var orderAddress = OrderAddress.Create(request.ShippingAddress, request.BillingAddress);
         var orderStatus = OrderStatus.Create();
 
