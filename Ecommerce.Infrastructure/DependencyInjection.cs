@@ -1,16 +1,20 @@
 ﻿using Ecommerce.Infrastructure.Data;
 using Ecommerce.Infrastructure.Extensions;
+using Ecommerce.Infrastructure.Mongo.Documents;
 using Ecommerce.Domain.DTOs.Auth;
 using Ecommerce.Domain.Interfaces.Repositories;
 using Ecommerce.Domain.Interfaces.Services;
 using Ecommerce.Infrastructure.Repositories;
 using Ecommerce.Infrastructure.Services;
 using Ecommerce.Infrastructure.HealthChecks;
+using Ecommerce.Infrastructure.Configurations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 using OpenTelemetry;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Resources;
@@ -34,11 +38,46 @@ public static class DependencyInjection
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString));
 
+        // Configuración de MongoDB
+        services.Configure<MongoDbSettings>(
+            configuration.GetSection("MongoDb"));
+
+        services.AddSingleton<IMongoClient>(sp =>
+        {
+            var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
+            return new MongoClient(settings.ConnectionString);
+        });
+
+        services.AddSingleton(sp =>
+        {
+            var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
+            var client = sp.GetRequiredService<IMongoClient>();
+            return client.GetDatabase(settings.Database);
+        });
+
+        services.AddSingleton(sp =>
+        {
+            var db = sp.GetRequiredService<IMongoDatabase>();
+            return db.GetCollection<ShoppingCartDocument>("ShoppingCarts");
+        });
+
+
+        // Configuración de Redis
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = configuration.GetConnectionString("Redis");
+            options.InstanceName = "Ecommerce_";
+        });
+
+
+
         // Repositorios
+        services.AddScoped<IShoppingCartRepository, ShoppingCartRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ISessionRepository, SessionRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IImageRepository, ImageRepository>();
+        services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IOrderRepository, OrderRepository>();
 

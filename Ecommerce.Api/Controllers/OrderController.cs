@@ -63,8 +63,19 @@ public class OrderController : ControllerBase
             Data = result,
             Message = "Proceso realizado con éxito."
         });
+    }
 
+    [HttpPost("shopping-cart")]
+    public async Task<IActionResult> ShoppingCartToOrder([FromBody] CreateOrUpdateShoppingCartRequest request)
+    {
 
+        var result = await _orderUseCase.ShoppingCartAsync(request);
+
+        return Ok(new GeneralResponse
+        {
+            Data = result,
+            Message = "Proceso realizado con éxito."
+        });
 
     }
 
