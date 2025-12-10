@@ -14,7 +14,7 @@ public class UserUseCases
     private readonly IConfiguration _config;
 
 
-    public UserUseCases(IUserRepository userRepository, IProductRepository productRepository, IConfiguration config)
+    public UserUseCases(IUserRepository userRepository, IShoppingCartRepository shoppingCartRepository, IProductRepository productRepository, IConfiguration config)
     {
         _userRepository = userRepository;
         _productRepository = productRepository;
@@ -52,8 +52,6 @@ public class UserUseCases
             }
             wishlists.Add(Product.ToSafeResponse(wishlist!.Product!));
         });
-
-
 
         return wishlists;
     }

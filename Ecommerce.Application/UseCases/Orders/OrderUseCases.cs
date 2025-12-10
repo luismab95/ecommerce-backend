@@ -12,14 +12,17 @@ public class OrderUseCases
 
     private readonly IOrderRepository _orderRepository;
     private readonly IProductRepository _productRepository;
+    private readonly IShoppingCartRepository _shoppingCartRepository;
     private readonly IConfiguration _config;
     private static readonly ActivitySource _source = new("OrderUseCases");
     private readonly ILogger<OrderUseCases> _logger;
 
 
-    public OrderUseCases(IOrderRepository orderRepository, IProductRepository productRepository, IConfiguration config, ILogger<OrderUseCases> logger)
+    public OrderUseCases(IOrderRepository orderRepository, IShoppingCartRepository shoppingCartRepository, IProductRepository productRepository, IConfiguration config, ILogger<OrderUseCases> logger)
     {
         _orderRepository = orderRepository;
+        _orderRepository = orderRepository;
+        _shoppingCartRepository = shoppingCartRepository;
         _productRepository = productRepository;
         _config = config;
         _logger = logger;
@@ -147,6 +150,26 @@ public class OrderUseCases
             throw new InvalidOperationException("Orden no encontrada.");
 
         return Order.ToSafeResponseDetail(findOrden!);
+    }
+
+    public async Task<string> ShoppingCartAsync(CreateOrUpdateShoppingCartRequest request)
+    {
+
+        var items = new List<CartItem>();
+        foreach (var item in request.Items)
+        {
+            var findProduct = await _productRepository.GetByIdAsync(item.ProductId);
+            if (findProduct == null)
+            {
+                throw new InvalidOperationException($"Producto {item.ProductId} no encontrado.");
+            }
+
+            items.Add(CartItem.Create(findProduct.Id, item.Quantity));
+        }
+
+        var shoppingCart = ShoppingCart.Create(request.UserId, items);
+        await _shoppingCartRepository.CreateOrUpdateAsync(shoppingCart, request.UserId);
+        return "Carrito de compras guardado exitosamente.";
     }
 
 }

@@ -6,6 +6,7 @@ public class AuthResponse
 {
     public string AccessToken { get; set; } = string.Empty;
     public dynamic? User { get; set; }
+    public dynamic? ShoppingCart { get; set; }
 
 }
 

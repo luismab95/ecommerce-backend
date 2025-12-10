@@ -12,14 +12,18 @@ namespace Ecommerce.Application.UseCases.Auth;
 public class AuthUseCases
 {
     private readonly IUserRepository _userRepository;
+    private readonly IProductRepository _productRepository;
     private readonly IAuthService _authService;
     private readonly IEmailService _emailService;
     private readonly IConfiguration _config;
     private readonly ISessionRepository _sessionRepository;
+    private readonly IShoppingCartRepository _shoppingCartRepository;
 
-    public AuthUseCases(IUserRepository userRepository, IAuthService authService, IEmailService emailService, IConfiguration config, ISessionRepository sessionRepository)
+    public AuthUseCases(IUserRepository userRepository, IProductRepository productRepository, IShoppingCartRepository shoppingCartRepository, IAuthService authService, IEmailService emailService, IConfiguration config, ISessionRepository sessionRepository)
     {
         _userRepository = userRepository;
+        _productRepository = productRepository;
+        _shoppingCartRepository = shoppingCartRepository;
         _authService = authService;
         _emailService = emailService;
         _config = config;
@@ -90,10 +94,14 @@ public class AuthUseCases
         // Generar accessToken
         var accessToken = await _authService.GenerateTokenAsync(findUser, newSession.Id);
 
+        // Obtener items del carrito
+        var cartItems = await GetShoppingCartItemsAsync(findUser.Id);
+
         return new AuthResponse
         {
             AccessToken = accessToken,
-            User = User.ToSafeResponse(findUser)
+            User = User.ToSafeResponse(findUser),
+            ShoppingCart = cartItems
         };
     }
 
@@ -186,7 +194,7 @@ public class AuthUseCases
 
     }
 
-    public static string GetPasswordResetTemplate()
+    private static string GetPasswordResetTemplate()
     {
         return $@" <div style='font-family: Arial, sans-serif; max-width: 480px; margin: auto; padding: 20px;'> <h2 style='color:#333;'>Restablecer tu contraseña</h2> <p style='color:#555; font-size: 15px;'>
                     Has solicitado restablecer tu contraseña. </p>
@@ -207,6 +215,30 @@ public class AuthUseCases
                         © {DateTime.UtcNow.Year} Mi Aplicación — Seguridad de cuentas
                     </p>
                 </div>";
+    }
+
+    private async Task<List<ShoppingCartItem>> GetShoppingCartItemsAsync(int userId)
+    {
+        var findShoppingCart = await _shoppingCartRepository.GetByIdAsync(userId);
+        var shoppingCartItems = new List<ShoppingCartItem>();
+        if (findShoppingCart != null)
+        {
+            foreach (var item in findShoppingCart.Items)
+            {
+                var product = await _productRepository.GetByIdAsync(item.ProductId);
+
+                string baseUrl = $"{_config["App:StaticUrl"]}";
+                var imagesList = new List<Image>();
+                product!.Images.ToList().ForEach(image =>
+                {
+                    if (image.IsActive)
+                        imagesList.Add(Image.UpdatePath(image, baseUrl));
+                });
+                product = Product.SetImages(product, imagesList);
+                shoppingCartItems.Add(ShoppingCartItem.Create(Product.ToSafeResponse(product!), item.Quantity));
+            }
+        }
+        return shoppingCartItems;
     }
 
 }
