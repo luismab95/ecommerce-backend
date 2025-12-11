@@ -30,7 +30,7 @@ public class JwtAuthService : IAuthService
             new Claim(ClaimTypes.Role, "ACCESS_TOKEN")
         };
 
-        return Task.FromResult(CreateJwtToken(claims, TimeSpan.FromHours(_jwtOptions.ExpireHours)));
+        return Task.FromResult(CreateJwtToken(claims, TimeSpan.FromMinutes(_jwtOptions.AccessExpireMinutes)));
     }
 
     public Task<string> GenerateRefreshTokenAsync(User user)
@@ -114,10 +114,6 @@ public class JwtAuthService : IAuthService
     {
         return BCrypt.Net.BCrypt.Verify(password, passwordHash);
     }
-
-    // ============================================================
-    // MÉTODO PRIVADO REUTILIZABLE PARA GENERAR TOKENS
-    // ============================================================
 
     private string CreateJwtToken(IEnumerable<Claim> claims, TimeSpan duration)
     {

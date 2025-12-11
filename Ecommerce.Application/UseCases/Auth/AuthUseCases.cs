@@ -19,6 +19,7 @@ public class AuthUseCases
     private readonly ISessionRepository _sessionRepository;
     private readonly IShoppingCartRepository _shoppingCartRepository;
 
+
     public AuthUseCases(IUserRepository userRepository, IProductRepository productRepository, IShoppingCartRepository shoppingCartRepository, IAuthService authService, IEmailService emailService, IConfiguration config, ISessionRepository sessionRepository)
     {
         _userRepository = userRepository;
@@ -29,7 +30,6 @@ public class AuthUseCases
         _config = config;
         _sessionRepository = sessionRepository;
     }
-
 
 
     public async Task<String> RegisterUserAsync(SignUpRequest request)
@@ -88,7 +88,8 @@ public class AuthUseCases
         var refreshToken = await _authService.GenerateRefreshTokenAsync(findUser);
 
         // Generar session 
-        var session = Session.Create(findUser.Id, request.DeviceInfo, request.Ip, refreshToken, true);
+        int.TryParse(_config["JwtSettings:RefreshExpireDays"], out int refreshExpireDays);
+        var session = Session.Create(findUser.Id, request.DeviceInfo, request.Ip, refreshToken, DateTime.Now.AddDays(refreshExpireDays));
         var newSession = await _sessionRepository.AddAsync(session);
 
         // Generar accessToken
@@ -100,6 +101,7 @@ public class AuthUseCases
         return new AuthResponse
         {
             AccessToken = accessToken,
+            RefreshToken = refreshToken,
             User = User.ToSafeResponse(findUser),
             ShoppingCart = cartItems
         };
@@ -140,7 +142,7 @@ public class AuthUseCases
     }
 
 
-    public async Task<string> RefreshTokenAsync(string token)
+    public async Task<AuthResponse> RefreshTokenAsync(string token)
     {
         // Obtener payload del token
         var isValidToken = _authService.ValidateToken(token, false);
@@ -148,27 +150,44 @@ public class AuthUseCases
         {
             throw new InvalidOperationException("Token no válido.");
         }
-        var jwtPayload = await _authService.GetPayloadJwtTokenAsync(token);
 
         // Buscar sesión 
-        int sessionId = int.Parse(jwtPayload[ClaimTypes.NameIdentifier].ToString()!);
-        var session = await _sessionRepository.GetSessionAsync(sessionId) ??
+        var session = await _sessionRepository.GetSessionByTokenAsync(token) ??
             throw new InvalidOperationException("Sesión no encontrada.");
+
 
         // Validar token
         var isValidRefreshToken = _authService.ValidateToken(session.RefreshToken, true);
-        if (!isValidRefreshToken)
-        {
+        if (session == null || session.ExpiresAt < DateTime.UtcNow || session.Revoked || !isValidRefreshToken)
             throw new InvalidOperationException("Sesión expirada.");
-        }
 
+        // REVOKE SESSION
+        var revokeSession = Session.Update(session);
+        await _sessionRepository.UpdateAsync(revokeSession);
+
+        // NEW SESSION
         // Buscar usuario
+        var jwtPayload = await _authService.GetPayloadJwtTokenAsync(token);
         var findUser = await _userRepository.GetByEmailAsync(jwtPayload[ClaimTypes.Email].ToString()!) ?? throw new InvalidOperationException("Sesión expirada.");
 
-        // Generar nuevo token
-        var accessToken = await _authService.GenerateTokenAsync(findUser, sessionId);
+        int.TryParse(_config["JwtSettings:RefreshExpireDays"], out int refreshExpireDays);
+        var newRefreshToken = await _authService.GenerateRefreshTokenAsync(findUser);
+        var newSession = Session.Create(findUser.Id, session.DeviceInfo, session.IpAddress, newRefreshToken, DateTime.Now.AddDays(refreshExpireDays));
+        await _sessionRepository.AddAsync(newSession);
 
-        return accessToken;
+        // Generar nuevo token
+        var accessToken = await _authService.GenerateTokenAsync(findUser, newSession.Id);
+
+        // Obtener items del carrito
+        var cartItems = await GetShoppingCartItemsAsync(findUser.Id);
+
+        return new AuthResponse
+        {
+            AccessToken = accessToken,
+            RefreshToken = newRefreshToken,
+            User = User.ToSafeResponse(findUser),
+            ShoppingCart = cartItems
+        };
     }
 
     public async Task<string> ForgotPasswordAsync(ForgotPasswordRequest request)

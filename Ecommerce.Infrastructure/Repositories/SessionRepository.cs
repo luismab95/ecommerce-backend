@@ -25,7 +25,13 @@ public class SessionRepository : ISessionRepository
 
     public async Task<Session?> GetSessionAsync(int id)
     {
-        return await _context.Sessions.FirstOrDefaultAsync(u => u.Id == id && u.IsActive);
+        return await _context.Sessions.FirstOrDefaultAsync(s => s.Id == id && !s.Revoked);
+    }
+
+
+    public async Task<Session?> GetSessionByTokenAsync(string token)
+    {
+        return await _context.Sessions.FirstOrDefaultAsync(s => s.RefreshToken == token && !s.Revoked);
     }
 
     public async Task UpdateAsync(Session session)
