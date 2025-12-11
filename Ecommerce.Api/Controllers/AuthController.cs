@@ -4,6 +4,7 @@ using Ecommerce.Domain.DTOs.General;
 using Ecommerce.Application.UseCases.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Antiforgery;
 
 namespace Ecommerce.Api.Controllers;
 
@@ -13,10 +14,16 @@ namespace Ecommerce.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly AuthUseCases _authUseCases;
+    private readonly IAntiforgery _xsrfService;
+    private readonly IConfiguration _config;
+    private readonly IHostEnvironment _environment;
 
-    public AuthController(AuthUseCases authUseCases)
+    public AuthController(AuthUseCases authUseCases, IAntiforgery xsrfService, IConfiguration config, IHostEnvironment environment)
     {
         _authUseCases = authUseCases;
+        _xsrfService = xsrfService;
+        _config = config;
+        _environment = environment;
     }
 
 
@@ -43,9 +50,38 @@ public class AuthController : ControllerBase
 
         var result = await _authUseCases.LoginUserAsync(request);
 
+        // Set HttpOnly cookie for refresh token
+        var isDev = _environment.IsDevelopment();
+        int.TryParse(_config["JwtSettings:RefreshExpireDays"], out int refreshExpireDays);
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Path = "/api/auth",
+            Expires = DateTimeOffset.UtcNow.AddDays(refreshExpireDays),
+            SameSite = isDev ? SameSiteMode.Lax : SameSiteMode.None,
+            Secure = !isDev // HTTPS en producción, HTTP en dev
+        };
+        Response.Cookies.Append("refreshToken", result.RefreshToken!, cookieOptions);
+
+        // Set XSRF token cookie (not HttpOnly) so Angular can read/send it
+        var tokens = _xsrfService.GetAndStoreTokens(HttpContext);
+        var xsrfOptions = new CookieOptions
+        {
+            HttpOnly = false,
+            Path = "/",
+            SameSite = isDev ? SameSiteMode.Lax : SameSiteMode.None,
+            Secure = !isDev // HTTPS en producción, HTTP en dev
+        };
+        Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!, xsrfOptions);
+
         return Ok(new GeneralResponse
         {
-            Data = result,
+            Data = new AuthResponse
+            {
+                AccessToken = result.AccessToken,
+                User = result.User,
+                ShoppingCart = result.ShoppingCart
+            },
             Message = "Proceso realizado con éxito."
         });
     }
@@ -54,26 +90,46 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> RefreshToken()
     {
 
-        if (!HttpContext.Request.Headers.TryGetValue("Authorization", out var authHeader))
-        {
-            return Unauthorized(new GeneralResponse { Message = "Token no presente en la solicitud." });
-        }
+        if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
+            return Unauthorized(new GeneralResponse { Message = "RefreshToken no presente en la solicitud." });
 
-        var parts = authHeader.ToString().Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length != 2 || !parts[0].Equals("Bearer", StringComparison.OrdinalIgnoreCase))
-        {
-            return Unauthorized(new GeneralResponse { Message = "Formato de token inválido." });
-        }
+        var result = await _authUseCases.RefreshTokenAsync(refreshToken);
 
-        var token = parts[1];
-        var result = await _authUseCases.RefreshTokenAsync(token);
+
+        // Set HttpOnly cookie for refresh token
+        var isDev = _environment.IsDevelopment();
+        int.TryParse(_config["JwtSettings:RefreshExpireDays"], out int refreshExpireDays);
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Path = "/api/auth",
+            Expires = DateTimeOffset.UtcNow.AddDays(refreshExpireDays),
+            SameSite = isDev ? SameSiteMode.Lax : SameSiteMode.None,
+            Secure = !isDev // HTTPS en producción, HTTP en dev
+        };
+        Response.Cookies.Append("refreshToken", result.RefreshToken!, cookieOptions);
+
+        // Set XSRF token cookie (not HttpOnly) so Angular can read/send it
+        var tokens = _xsrfService.GetAndStoreTokens(HttpContext);
+        var xsrfOptions = new CookieOptions
+        {
+            HttpOnly = false,
+            Path = "/",
+            SameSite = isDev ? SameSiteMode.Lax : SameSiteMode.None,
+            Secure = !isDev // HTTPS en producción, HTTP en dev
+        };
+        Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!, xsrfOptions);
 
         return Ok(new GeneralResponse
         {
-            Data = result,
+            Data = new AuthResponse
+            {
+                AccessToken = result.AccessToken,
+                User = result.User,
+                ShoppingCart = result.ShoppingCart
+            },
             Message = "Proceso realizado con éxito."
         });
-
 
     }
 
@@ -88,6 +144,10 @@ public class AuthController : ControllerBase
         var token = rawAuth.Replace("Bearer ", "").Trim();
 
         var result = await _authUseCases.LogoutUserAsync(token);
+
+        // Remove cookie
+        Response.Cookies.Delete("refreshToken", new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None, Path = "/api/auth" });
+        Response.Cookies.Delete("XSRF-TOKEN");
 
         return Ok(new GeneralResponse
         {

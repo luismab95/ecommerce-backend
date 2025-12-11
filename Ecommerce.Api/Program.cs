@@ -18,6 +18,18 @@ builder.Services.AddInfrastructure(builder.Configuration, builder.Host, builder.
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddCustomInvalidModelStateResponse();
+builder.Services.AddAntiforgery(options =>
+{
+    options.Cookie.Name = "XSRF-TOKEN";
+    options.Cookie.HttpOnly = false;
+    options.Cookie.Path = "/";
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.SecurePolicy =
+        builder.Environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always; // producción HTTPS
+    options.HeaderName = "X-XSRF-TOKEN";
+});
+
+
 
 // Filters
 builder.Services.AddScoped<PostAuthorizeFilter>();
@@ -51,7 +63,7 @@ if (app.Environment.IsDevelopment())
 }
 
 
-app.UseCors("NewPolicy");
+app.UseCors("FrontEndPolicy");
 app.UseStaticFiles();
 
 app.UseAuthentication();

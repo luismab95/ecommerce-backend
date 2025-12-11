@@ -16,13 +16,13 @@ public class SessionConfiguration : IEntityTypeConfiguration<Session>
         entity.Property(s => s.DeviceInfo).HasMaxLength(500);
         entity.Property(s => s.IpAddress).HasMaxLength(45);
         entity.Property(s => s.RefreshToken).IsRequired();
-        entity.Property(s => s.IsActive).HasDefaultValue(true);
-        entity.Property(s => s.LoginAt).IsRequired().HasDefaultValueSql("GETUTCDATE()");
-        entity.Property(s => s.LogoutAt).HasDefaultValue(null);
+        entity.Property(s => s.Revoked).HasDefaultValue(false);
+        entity.Property(s => s.CreatedAt).IsRequired().HasDefaultValueSql("GETUTCDATE()");
+        entity.Property(s => s.ExpiresAt).IsRequired().HasDefaultValueSql("GETUTCDATE() + 14");
 
         // Indexes
         entity.HasIndex(s => s.UserId);
-        entity.HasIndex(s => new { s.UserId, s.IsActive });
+        entity.HasIndex(s => new { s.UserId, s.Revoked });
 
         // Relationships
         entity.HasOne(s => s.User)

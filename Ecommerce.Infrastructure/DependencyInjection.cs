@@ -101,6 +101,19 @@ public static class DependencyInjection
             });
         });
 
+
+        services.AddCors(options =>
+        {
+            options.AddPolicy("FrontEndPolicy", policy =>
+            {
+                policy.WithOrigins(configuration["App:FrontendBaseUrl"]!)
+                      .AllowCredentials()
+                      .AllowAnyHeader()
+                      .AllowAnyMethod();
+            });
+        });
+
+
         // Health Checks
         services.AddSingleton<DatabaseMetrics>();
         services.AddHostedService<DatabaseMetricsCollector>();
