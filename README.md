@@ -33,6 +33,20 @@ Una API RESTful robusta para una plataforma de comercio electrónico construida 
 - ✅ Productos destacados
 - ✅ Paginación y filtrado
 
+### Gestión de Pedidos (Orders)
+
+- ✅ Creación y gestión de pedidos
+- ✅ Conversión de carrito de compras a pedido
+- ✅ Actualización de estado de pedidos (Admin)
+- ✅ Cancelación de pedidos
+- ✅ Historial de pedidos
+
+### Carrito de Compras
+
+- ✅ Persistencia de carrito con MongoDB
+- ✅ Caché de carrito con Redis (Alto rendimiento)
+- ✅ Sincronización de carrito
+
 ### Gestión de Categorías
 
 - ✅ CRUD completo de categorías
@@ -52,6 +66,12 @@ Una API RESTful robusta para una plataforma de comercio electrónico construida 
 - ✅ Gestión de imágenes de productos
 - ✅ Servicio de almacenamiento local
 
+### Observabilidad y Monitoreo
+
+- ✅ Health Checks
+- ✅ Métricas con OpenTelemetry
+- ✅ Logging estructurado con Serilog
+
 ### Características Técnicas
 
 - ✅ Arquitectura limpia (Clean Architecture)
@@ -62,6 +82,7 @@ Una API RESTful robusta para una plataforma de comercio electrónico construida 
 - ✅ Documentación Swagger/OpenAPI
 - ✅ CORS configurado
 - ✅ Entity Framework Core con SQL Server
+- ✅ Base de datos NoSQL (MongoDB) para datos volátiles
 
 ## 🏗️ Arquitectura
 
@@ -98,27 +119,37 @@ El proyecto sigue los principios de **Clean Architecture**, dividido en 4 capas 
 
 ## 🛠️ Tecnologías
 
-- **Framework**: .NET 8.0
-- **ORM**: Entity Framework Core 8.0
-- **Base de Datos**: SQL Server
+- **Framework**: .NET 10.0
+- **ORM Relacional**: Entity Framework Core 10.0
+- **Base de Datos Relacional**: SQL Server
+- **Base de Datos NoSQL**: MongoDB (Carrito de compras)
+- **Caché**: Redis
 - **Autenticación**: JWT Bearer Tokens
 - **Documentación**: Swagger/Swashbuckle
-- **Email**: SMTP (Gmail)
+- **Email**: MailKit (SMTP)
+- **Logging**: Serilog
+- **Observabilidad**: OpenTelemetry
 - **Almacenamiento**: Sistema de archivos local
 
 ### Paquetes NuGet Principales
 
 ```xml
-- Microsoft.AspNetCore.Authentication.JwtBearer (8.0.22)
-- Microsoft.EntityFrameworkCore (8.0.22)
-- Microsoft.EntityFrameworkCore.SqlServer (8.0.22)
-- Swashbuckle.AspNetCore (6.6.2)
+- Microsoft.AspNetCore.Authentication.JwtBearer (10.0.0)
+- Microsoft.EntityFrameworkCore (10.0.0)
+- Microsoft.EntityFrameworkCore.SqlServer (10.0.0)
+- Swashbuckle.AspNetCore (10.0.1)
+- MongoDB.Driver (3.5.2)
+- Microsoft.Extensions.Caching.StackExchangeRedis (10.0.1)
+- Serilog.AspNetCore (10.0.0)
+- MailKit (4.14.1)
 ```
 
 ## 📦 Requisitos Previos
 
 - [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - [SQL Server](https://www.microsoft.com/sql-server) (LocalDB, Express, o superior)
+- [MongoDB](https://www.mongodb.com/try/download/community) (Local o Atlas)
+- [Redis](https://redis.io/download) (Opcional, pero recomendado para caché)
 - [Visual Studio 2022](https://visualstudio.microsoft.com/) o [Visual Studio Code](https://code.visualstudio.com/)
 - [Git](https://git-scm.com/)
 
@@ -149,7 +180,7 @@ Edita el archivo `appsettings.json` en el proyecto `Ecommerce.Api` con tu cadena
 }
 ```
 
-4. **Aplicar migraciones**
+4. **Aplicar migraciones (SQL Server)**
 
 ```bash
 cd Ecommerce.Api
@@ -178,6 +209,20 @@ En `appsettings.json`, configura los parámetros JWT:
     "Audience": "EcommerceClient",
     "ExpirationMinutes": 60,
     "RefreshTokenExpirationDays": 7
+  }
+}
+```
+
+### Configuración NoSQL y Caché
+
+```json
+{
+  "MongoDbSettings": {
+    "ConnectionString": "mongodb://localhost:27017",
+    "DatabaseName": "EcommerceNoSql"
+  },
+  "RedisSettings": {
+    "ConnectionString": "localhost:6379"
   }
 }
 ```
@@ -286,6 +331,17 @@ https://localhost:7000/swagger
 | PUT    | `/{id}`  | Actualizar categoría         | Sí   | Admin |
 | DELETE | `/{id}`  | Eliminar categoría           | Sí   | Admin |
 
+### Pedidos (`/api/orders`)
+
+| Método | Endpoint         | Descripción                 | Auth | Rol   |
+| ------ | ---------------- | --------------------------- | ---- | ----- |
+| GET    | `/`              | Listar pedidos (Filtros)    | Sí   | -     |
+| GET    | `/{orderId}`     | Obtener detalle de pedido   | Sí   | -     |
+| POST   | `/`              | Crear nuevo pedido          | Sí   | -     |
+| POST   | `/shopping-cart` | Crear pedido desde carrito  | Sí   | -     |
+| PUT    | `/{orderId}`     | Actualizar estado de pedido | Sí   | Admin |
+| DELETE | `/{orderId}`     | Cancelar pedido             | Sí   | -     |
+
 ### Imágenes (`/api/image`)
 
 | Método | Endpoint               | Descripción                  | Auth | Rol   |
@@ -293,6 +349,13 @@ https://localhost:7000/swagger
 | GET    | `/product/{productId}` | Obtener imágenes de producto | No   | -     |
 | POST   | `/upload`              | Subir imagen                 | Sí   | Admin |
 | DELETE | `/{id}`                | Eliminar imagen              | Sí   | Admin |
+
+### Salud y Monitoreo (`/api/health`)
+
+| Método | Endpoint   | Descripción          | Auth |
+| ------ | ---------- | -------------------- | ---- |
+| GET    | `/`        | Estado del servicio  | Sí   |
+| GET    | `/metrics` | Métricas del sistema | Sí   |
 
 ## 📁 Estructura del Proyecto
 
@@ -302,40 +365,46 @@ Ecommerce/
 │   ├── Controllers/                  # Controladores de la API
 │   │   ├── AuthController.cs
 │   │   ├── CategoryController.cs
+│   │   ├── HealthCheckController.cs
 │   │   ├── ImageController.cs
+│   │   ├── OrderController.cs
 │   │   ├── ProductController.cs
 │   │   └── UserController.cs
-│   ├── Filters/                      # Filtros personalizados
-│   ├── Configurations/               # Configuraciones
-│   ├── Program.cs                    # Punto de entrada
-│   └── appsettings.json             # Configuración
+│   ├── Filters/
+│   ├── Configurations/
+│   ├── Program.cs
+│   └── appsettings.json
 │
 ├── Ecommerce.Application/            # Capa de aplicación
-│   └── UseCases/                    # Casos de uso
+│   └── UseCases/
 │       ├── Auth/
 │       ├── Categories/
 │       ├── Images/
+│       ├── Orders/
 │       ├── Products/
 │       └── Users/
 │
 ├── Ecommerce.Domain/                 # Capa de dominio
-│   ├── Entities/                    # Entidades de dominio
+│   ├── Entities/
 │   │   ├── Category.cs
 │   │   ├── Image.cs
 │   │   ├── Product.cs
+│   │   ├── Order.cs
 │   │   ├── Session.cs
 │   │   └── User.cs
-│   ├── DTOs/                        # Objetos de transferencia
-│   └── Interfaces/                  # Interfaces de dominio
-│       ├── Repositories/
-│       └── Services/
+│   ├── DTOs/
+│   └── Interfaces/
 │
 └── Ecommerce.Infrastructure/         # Capa de infraestructura
-    ├── Data/                        # Contexto de base de datos
+    ├── Data/
     │   ├── ApplicationDbContext.cs
-    │   └── Configurations/
-    ├── Repositories/                # Implementación de repositorios
-    └── Services/                    # Implementación de servicios
+    ├── Mongo/                       # Documentos y Mappers Mongo
+    │   ├── Documents/
+    │   └── Mappers/
+    ├── Repositories/
+    │   ├── ShoppingCartRepository.cs
+    │   └── ...
+    └── Services/
 ```
 
 ## 🔐 Seguridad
@@ -348,7 +417,7 @@ Ecommerce/
 
 ## 🧪 Testing
 
-Para ejecutar las pruebas (cuando estén implementadas):
+Para ejecutar las pruebas:
 
 ```bash
 dotnet test
